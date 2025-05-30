@@ -1,0 +1,14 @@
+from django.db import models
+
+class ProductoArtesanal(models.Model):
+    nombre = models.CharField(max_length=100)
+    descripcion = models.TextField()
+    imagen = models.ImageField(upload_to='productos/')
+    creado_en = models.DateTimeField(auto_now_add=True)
+    verificado = models.BooleanField(default=False)
+    impacto_social = models.TextField(blank=True)
+    hash_blockchain = models.CharField(max_length=256, blank=True)
+
+    def __str__(self):
+        return self.nombre
+

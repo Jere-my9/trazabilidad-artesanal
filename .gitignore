@@ -1,0 +1,28 @@
+# Ignorar carpetas de dependencias
+node_modules/
+.venv/
+env/
+__pycache__/
+*.pyc
+
+# Archivos de configuración de entorno
+.env
+.env.local
+
+# Archivos de build y compilados
+build/
+dist/
+public/build/ # Si tu frontend compila a una subcarpeta public/build
+frontend/dist/ # Si tu frontend (Vite/React) compila a una carpeta 'dist'
+frontend/build/ # Si tu frontend (Create React App) compila a una carpeta 'build'
+
+# Archivos de base de datos
+*.sqlite3
+db.sqlite3
+
+# Archivos de logs
+*.log
+
+# Archivos de sistema operativo
+.DS_Store
+Thumbs.db
