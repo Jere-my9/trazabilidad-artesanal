@@ -29,7 +29,7 @@ SECRET_KEY = 'django-insecure-gz$d%h-1az^d)b-e^tjf*yy&%+w%oh57)z-y&)6p^dck(0-o1)
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['tinkuy-backend.onrender.com']
 
 
 # Application definition
