@@ -1,12 +1,10 @@
-# backend/tinkuy_backend/api/views.py
-
 import os
 from rest_framework import viewsets
 from .models import ProductoArtesanal
 from .serializers import ProductoArtesanalSerializer
-from ia.utils import verificar_producto 
-from ia.nlp import generar_impacto_social 
-from blockchain.utils import registrar_en_blockchain # Descomenta esta línea
+from ia.utils import verificar_producto
+from ia.nlp import generar_impacto_social
+from blockchain.utils import registrar_en_blockchain
 
 class ProductoArtesanalViewSet(viewsets.ModelViewSet):
     queryset = ProductoArtesanal.objects.all().order_by('-creado_en')
@@ -14,16 +12,22 @@ class ProductoArtesanalViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         producto = serializer.save()
-        
-        if producto.imagen: 
+
+        if producto.imagen:
             try:
-                verificado, _ = verificar_producto(producto.imagen.path) 
+                verificado, confianza_ia_value, _ = verificar_producto(producto.imagen.path) 
                 producto.verificado = verificado
-                print(f"DEBUG: Producto verificado por IA: {verificado}")
+                producto.confianza_ia = confianza_ia_value # <--- ASIGNACIÓN
+                print(f"DEBUG: Producto verificado por IA: {verificado}, Confianza: {confianza_ia_value}%")
             except Exception as e:
                 print(f"ERROR: Fallo al verificar producto con IA: {e}")
-                producto.verificado = False 
-        
+                producto.verificado = False
+                producto.confianza_ia = 0.0 
+        else:
+            producto.verificado = False
+            producto.confianza_ia = 0.0
+
+
         try:
             impacto = generar_impacto_social(producto.nombre, producto.descripcion) 
             producto.impacto_social = impacto
@@ -33,9 +37,8 @@ class ProductoArtesanalViewSet(viewsets.ModelViewSet):
             producto.impacto_social = "" 
 
 
-        # --- Descomenta ESTE bloque para registrar en blockchain ---
         try:
-            tx_hash, hash_hex = registrar_en_blockchain(producto) # Descomenta esta sección
+            tx_hash, hash_hex = registrar_en_blockchain(producto) 
             producto.hash_blockchain = hash_hex
             print(f"DEBUG: Hash Blockchain: {hash_hex}")
         except Exception as e:

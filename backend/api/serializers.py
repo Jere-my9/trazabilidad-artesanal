@@ -4,4 +4,4 @@ from .models import ProductoArtesanal
 class ProductoArtesanalSerializer(serializers.ModelSerializer):
     class Meta:
         model = ProductoArtesanal
-        fields = '__all__'
+        fields = '__all__' # Esto ahora incluirá 'confianza_ia' automáticamente
