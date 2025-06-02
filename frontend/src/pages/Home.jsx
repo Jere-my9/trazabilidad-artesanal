@@ -1,4 +1,3 @@
-// frontend/src/pages/Home.jsx
 import React, { useState, useEffect } from 'react';
 import ProductForm from '../components/ProductForm';
 import ProductCard from '../components/ProductCard';
@@ -17,14 +16,13 @@ function Home() {
       console.log("Home: Intentando listar productos del backend...");
       // MODIFICACIÓN CLAVE AQUÍ: Acceder a response.data
       const response = await listarProductos();
-      const productsData = response.data; // <-- ¡Accede a la propiedad 'data' del objeto de respuesta!
+      const productsData = response.data; // <-- ¡Asegúrate de tener esta línea!
 
       // Asegurarse de que productsData es un array antes de establecerlo
-      if (Array.isArray(productsData)) {
+      if (Array.isArray(productsData)) { // <-- Y esta comprobación
         setProducts(productsData);
         console.log("Home: Productos cargados:", productsData);
       } else {
-        // Manejar el caso si response.data no es un array (aunque no debería pasar si el backend es RESTful)
         console.error("Home: La respuesta de la API no es un array:", productsData);
         setErrorProducts('Formato de datos de productos inesperado del servidor.');
       }
