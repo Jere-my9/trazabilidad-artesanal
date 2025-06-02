@@ -127,18 +127,21 @@ function Home() {
         {loadingProducts && <p>Cargando productos...</p>} {/* Muestra mensaje de carga */}
         {errorProducts && <p className="error-message" style={{ color: 'red' }}>{errorProducts}</p>} {/* Muestra mensaje de error */}
 
-        {!loadingProducts && !errorProducts && filteredProducts.length === 0 ? (
-          <p className="no-products-message">No se encontraron productos.</p>
-        ) : (
-          // Solo muestra el grid si no hay carga ni error y hay productos
-          !loadingProducts && !errorProducts && (
-            <div className="product-cards-grid">
-              {filteredProducts.map(product => (
-                <ProductCard key={product.id} product={product} />
-              ))}
-            </div>
-          )
-        )}
+        {loadingProducts && <p>Cargando productos...</p>}
+        {errorProducts && <p className="error-message" style={{ color: 'red' }}>{errorProducts}</p>}
+
+        {/* Solo renderiza si no está cargando y no hay errores */}
+        {!loadingProducts && !errorProducts && (
+          filteredProducts && filteredProducts.length > 0 ? ( // <-- Asegura que filteredProducts no sea undefined y tenga elementos
+            <div className="product-cards-grid">
+              {filteredProducts.map(product => (
+                <ProductCard key={product.id} product={product} />
+              ))}
+            </div>
+          ) : (
+            <p className="no-products-message">No se encontraron productos.</p>
+          )
+        )}
       </section>
     </div>
   );
