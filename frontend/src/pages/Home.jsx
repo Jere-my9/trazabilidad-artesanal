@@ -1,26 +1,34 @@
-import React, { useState, useEffect } from 'react'; // <--- Importa useEffect
+// frontend/src/pages/Home.jsx
+import React, { useState, useEffect } from 'react';
 import ProductForm from '../components/ProductForm';
 import ProductCard from '../components/ProductCard';
-import { listarProductos } from '../services/api'; // <--- Importa listarProductos
+import { listarProductos } from '../services/api';
 
 function Home() {
-  // Estado para los productos que vienen del backend
   const [products, setProducts] = useState([]);
-  // Estados para manejar la carga y errores al obtener productos
   const [loadingProducts, setLoadingProducts] = useState(true);
   const [errorProducts, setErrorProducts] = useState(null);
-
   const [searchTerm, setSearchTerm] = useState('');
 
-  // *** FUNCIÓN PARA OBTENER PRODUCTOS DEL BACKEND ***
   const fetchProducts = async () => {
     setLoadingProducts(true);
-    setErrorProducts(null); // Limpiar errores anteriores
+    setErrorProducts(null);
     try {
       console.log("Home: Intentando listar productos del backend...");
-      const data = await listarProductos(); // Llama a tu API
-      setProducts(data);
-      console.log("Home: Productos cargados:", data);
+      // MODIFICACIÓN CLAVE AQUÍ: Acceder a response.data
+      const response = await listarProductos();
+      const productsData = response.data; // <-- ¡Accede a la propiedad 'data' del objeto de respuesta!
+
+      // Asegurarse de que productsData es un array antes de establecerlo
+      if (Array.isArray(productsData)) {
+        setProducts(productsData);
+        console.log("Home: Productos cargados:", productsData);
+      } else {
+        // Manejar el caso si response.data no es un array (aunque no debería pasar si el backend es RESTful)
+        console.error("Home: La respuesta de la API no es un array:", productsData);
+        setErrorProducts('Formato de datos de productos inesperado del servidor.');
+      }
+
     } catch (err) {
       console.error("Home: Error al cargar productos:", err.response ? err.response.data : err.message);
       setErrorProducts('No se pudieron cargar los productos del servidor.');
