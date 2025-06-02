@@ -9,6 +9,7 @@ class ProductoArtesanal(models.Model):
     confianza_ia = models.FloatField(default=0.0)
     impacto_social = models.TextField(blank=True)
     hash_blockchain = models.CharField(max_length=256, blank=True)
+    tipo = models.CharField(max_length=50, blank=True, null=True)
 
     def __str__(self):
         return self.nombre
