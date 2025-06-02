@@ -24,8 +24,8 @@ export const crearProducto = (data) => {
   // Axios automáticamente detecta FormData y establece el Content-Type adecuado
   // No necesitas el header 'Content-Type': 'multipart/form-data' aquí si 'data' es un FormData.
   // Si 'data' es un objeto JSON y no una imagen, necesitarías 'application/json'.
-  return API.post('/productos/', data);
+  return API.post('api/productos/', data);
 };
 
 export const listarProductos = () =>
-  API.get('/productos/');
+  API.get('api/productos/');
