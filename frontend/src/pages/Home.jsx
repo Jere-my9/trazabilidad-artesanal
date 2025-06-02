@@ -10,30 +10,30 @@ function Home() {
   const [searchTerm, setSearchTerm] = useState('');
 
   const fetchProducts = async () => {
-    setLoadingProducts(true);
-    setErrorProducts(null);
-    try {
-      console.log("Home: Intentando listar productos del backend...");
-      // MODIFICACIÓN CLAVE AQUÍ: Acceder a response.data
-      const response = await listarProductos();
-      const productsData = response.data; // <-- ¡Asegúrate de tener esta línea!
-
-      // Asegurarse de que productsData es un array antes de establecerlo
-      if (Array.isArray(productsData)) { // <-- Y esta comprobación
-        setProducts(productsData);
-        console.log("Home: Productos cargados:", productsData);
-      } else {
-        console.error("Home: La respuesta de la API no es un array:", productsData);
-        setErrorProducts('Formato de datos de productos inesperado del servidor.');
-      }
-
-    } catch (err) {
-      console.error("Home: Error al cargar productos:", err.response ? err.response.data : err.message);
-      setErrorProducts('No se pudieron cargar los productos del servidor.');
-    } finally {
-      setLoadingProducts(false);
-    }
-  };
+        setLoadingProducts(true);
+        setErrorProducts(null);
+        try {
+          console.log("Home: Intentando listar productos del backend...");
+          const response = await listarProductos();
+          const productsData = response.data;
+    
+          if (Array.isArray(productsData)) {
+            setProducts(productsData);
+            console.log("Home: Productos cargados:", productsData);
+          } else {
+            console.error("Home: La respuesta de la API no es un array:", productsData);
+            setErrorProducts('Formato de datos de productos inesperado del servidor.');
+            setProducts([]); // <-- ¡Añade esta línea!
+          }
+    
+        } catch (err) {
+          console.error("Home: Error al cargar productos:", err.response ? err.response.data : err.message);
+          setErrorProducts('No se pudieron cargar los productos del servidor.');
+          setProducts([]); // <-- ¡Añade esta línea!
+        } finally {
+          setLoadingProducts(false);
+        }
+      };
 
   // *** EFECTO PARA CARGAR PRODUCTOS AL MONTAR EL COMPONENTE ***
   useEffect(() => {
@@ -50,19 +50,19 @@ function Home() {
   };
 
 
-  const filteredProducts = products.filter(product => {
-    // Aseguramos que 'nombre' y 'descripcion' existen y son strings antes de usar toLowerCase()
-    const nombre = product.nombre ? product.nombre.toLowerCase() : '';
-    const descripcion = product.descripcion ? product.descripcion.toLowerCase() : '';
-    const term = searchTerm.toLowerCase();
-    
-    return (
-    nombre.includes(term) ||
-    descripcion.includes(term)
-    // Si tuvieras 'tags' en el futuro y fuera un array de strings, la línea sería:
-    // (product.tags && Array.isArray(product.tags) && product.tags.some(tag => tag.toLowerCase().includes(term)))
-    );
-    });
+// REVISIÓN DE LA FUNCIÓN filteredProducts
+  const filteredProducts = Array.isArray(products) // <-- ¡Añade esta comprobación!
+    ? products.filter(product => {
+        const nombre = product.nombre ? String(product.nombre).toLowerCase() : ''; // String() para asegurar que es un string
+        const descripcion = product.descripcion ? String(product.descripcion).toLowerCase() : ''; // String() para asegurar que es un string
+        const term = String(searchTerm || '').toLowerCase(); // String() y || '' para asegurar que searchTerm es un string
+
+        return (
+          nombre.includes(term) ||
+          descripcion.includes(term)
+        );
+      })
+    : []; // <-- Si 'products' no es un array, devuelve un array vacío para filteredProducts
 
   return (
     <div className="section-spacing">
@@ -123,9 +123,6 @@ function Home() {
             </div>
           </div>
         </div>
-
-        {loadingProducts && <p>Cargando productos...</p>} {/* Muestra mensaje de carga */}
-        {errorProducts && <p className="error-message" style={{ color: 'red' }}>{errorProducts}</p>} {/* Muestra mensaje de error */}
 
         {loadingProducts && <p>Cargando productos...</p>}
         {errorProducts && <p className="error-message" style={{ color: 'red' }}>{errorProducts}</p>}
