@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 import os
 import dj_database_url
 from pathlib import Path
+from decouple import config
 
 # Importar Whitenoise si lo vas a usar para estáticos (recomendado)
 # from whitenoise.storage import CompressedManifestStaticFilesStorage
@@ -37,6 +38,13 @@ DEBUG = os.environ.get('DEBUG', 'False') == 'True' # Por defecto a False
 CORS_ALLOWED_ORIGINS_RAW = os.environ.get('CORS_ALLOWED_ORIGINS', '')
 CORS_ALLOWED_ORIGINS = [origin.strip() for origin in CORS_ALLOWED_ORIGINS_RAW.split(',') if origin.strip()]
 
+CLOUDINARY_CLOUD_NAME = config('CLOUDINARY_CLOUD_NAME')
+CLOUDINARY_API_KEY = config('CLOUDINARY_API_KEY')
+CLOUDINARY_API_SECRET = config('CLOUDINARY_API_SECRET')
+
+DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+
+MEDIA_URL = '/media/'
 # Configura ALLOWED_HOSTS para Render
 ALLOWED_HOSTS = []
 # Obtén ALLOWED_HOSTS de la variable de entorno
@@ -62,6 +70,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'cloudinary',
+    'cloudinary_storage',
     'corsheaders',
     'rest_framework',
     'api',
@@ -152,9 +162,6 @@ TIME_ZONE = 'UTC'
 USE_I18N = True
 
 USE_TZ = True
-
-MEDIA_URL = '/media/'
-MEDIA_ROOT = BASE_DIR / 'media'
 
 
 # Static files (CSS, JavaScript, Images)
