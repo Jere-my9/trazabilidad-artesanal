@@ -50,11 +50,19 @@ function Home() {
   };
 
 
-  const filteredProducts = products.filter(product =>
-    product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    product.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    product.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase())) // También busca por etiquetas
-  );
+  const filteredProducts = products.filter(product => {
+    // Aseguramos que 'nombre' y 'descripcion' existen y son strings antes de usar toLowerCase()
+    const nombre = product.nombre ? product.nombre.toLowerCase() : '';
+    const descripcion = product.descripcion ? product.descripcion.toLowerCase() : '';
+    const term = searchTerm.toLowerCase();
+    
+    return (
+    nombre.includes(term) ||
+    descripcion.includes(term)
+    // Si tuvieras 'tags' en el futuro y fuera un array de strings, la línea sería:
+    // (product.tags && Array.isArray(product.tags) && product.tags.some(tag => tag.toLowerCase().includes(term)))
+    );
+    });
 
   return (
     <div className="section-spacing">
