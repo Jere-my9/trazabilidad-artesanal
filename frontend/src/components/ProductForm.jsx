@@ -1,49 +1,69 @@
 import React, { useState } from 'react';
+import { crearProducto } from '../services/api'; // <--- Importa crearProducto
 
+// El prop addProduct ahora se usará para notificar al padre (Home.jsx) que se registró
+// pero la lógica de guardado la manejará este componente con la API.
 function ProductForm({ addProduct }) {
   const [productName, setProductName] = useState('');
   const [description, setDescription] = useState('');
   const [tags, setTags] = useState('');
-  const [imageUrl, setImageUrl] = useState(null); // Para almacenar el objeto File o URL temporal
-  const [formMessage, setFormMessage] = useState({ type: '', text: '' }); // {type: 'success'|'error', text: 'Mensaje'}
+  const [imageFile, setImageFile] = useState(null); // Renombrado a imageFile para claridad
+  const [formMessage, setFormMessage] = useState({ type: '', text: '' });
+  const [loading, setLoading] = useState(false); // Nuevo estado para indicar carga
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => { // <--- Haz la función asíncrona
     e.preventDefault();
 
-    if (!productName || !description || !tags || !imageUrl) {
-      setFormMessage({ type: 'error', text: 'Por favor, completa todos los campos.' });
+    if (!productName || !description || !tags || !imageFile) { // Usa imageFile
+      setFormMessage({ type: 'error', text: 'Por favor, completa todos los campos (incluida la imagen).' });
       return;
     }
 
-    const newProduct = {
-      name: productName,
-      description,
-      tags: tags.split(',').map(tag => tag.trim()).filter(tag => tag !== ''),
-      imageUrl: typeof imageUrl === 'string' ? imageUrl : URL.createObjectURL(imageUrl), // Usar URL temporal si es un File
-      iaVerified: Math.random() > 0.5, // Simular verificación IA
-      averageConfidence: Math.floor(Math.random() * 40) + 60, // Simular confianza 60-100
-      producer: "Artesano Ejemplo" // Puedes hacer que esto sea un input si es necesario
-    };
+    setLoading(true); // Inicia el estado de carga
+    setFormMessage({ type: '', text: '' }); // Limpia mensajes anteriores
 
-    addProduct(newProduct);
+    try {
+        // Crea un objeto FormData para enviar datos y el archivo
+        const formData = new FormData();
+        formData.append('nombre', productName); // Asegúrate que coincida con el campo de tu modelo Django
+        formData.append('descripcion', description);
+        formData.append('etiquetas', tags); // Si Django espera un string separado por comas
+        formData.append('imagen', imageFile); // ¡Aquí adjuntas el archivo real!
 
-    // Resetear formulario
-    setProductName('');
-    setDescription('');
-    setTags('');
-    setImageUrl(null);
-    setFormMessage({ type: 'success', text: 'Producto registrado exitosamente. ¡Gracias por confiar en Tinkuy!' });
+        // Llama a la función de la API para crear el producto
+        const response = await crearProducto(formData); // <--- ¡Esta es la llamada crucial!
 
-    // Opcional: Limpiar mensaje después de un tiempo
-    setTimeout(() => setFormMessage({ type: '', text: '' }), 5000);
+        // Si la respuesta es exitosa, el backend ya guardó el producto en la DB
+        // Ahora actualiza el frontend y limpia el formulario
+        setFormMessage({ type: 'success', text: 'Producto registrado exitosamente. ¡Gracias por confiar en Tinkuy!' });
+
+        // Llama a la prop addProduct para que el componente padre (Home.jsx)
+        // sepa que un nuevo producto fue añadido y pueda recargar la lista
+        addProduct(response.data); // Pasa los datos del producto que devuelve el backend
+
+        // Resetear formulario
+        setProductName('');
+        setDescription('');
+        setTags('');
+        setImageFile(null); // Limpia el estado del archivo de imagen
+        // Para limpiar visualmente el input de archivo, necesitarías una ref
+        e.target.reset(); // Esto puede funcionar para limpiar todos los inputs del form
+
+    } catch (error) {
+        console.error('Error al registrar producto:', error.response ? error.response.data : error.message);
+        setFormMessage({ type: 'error', text: `Error al registrar el producto: ${error.response ? (JSON.stringify(error.response.data)) : error.message}` });
+    } finally {
+        setLoading(false); // Finaliza el estado de carga
+        setTimeout(() => setFormMessage({ type: '', text: '' }), 5000);
+    }
   };
 
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (file) {
-      setImageUrl(file);
+      setImageFile(file); // Guarda el objeto File directamente
     } else {
-      setImageUrl(null);
+      setImageFile(null);
     }
   };
 
@@ -68,9 +88,10 @@ function ProductForm({ addProduct }) {
             placeholder="Ej: Manta Andina de Alpaca"
             value={productName}
             onChange={(e) => setProductName(e.target.value)}
+            required
           />
         </div>
-        <div className="full-width"> {/* Clase para que ocupe todo el ancho en móvil, o 2 columnas en md */}
+        <div className="full-width">
           <label htmlFor="description" className="form-label">
             Descripción del Producto
           </label>
@@ -81,6 +102,7 @@ function ProductForm({ addProduct }) {
             placeholder="Describe las características, materiales, y técnicas usadas."
             value={description}
             onChange={(e) => setDescription(e.target.value)}
+            required
           ></textarea>
         </div>
         <div>
@@ -96,11 +118,10 @@ function ProductForm({ addProduct }) {
             onChange={(e) => setTags(e.target.value)}
           />
         </div>
-        <div className="full-width"> {/* Este div ya tenía la clase "full-width" correctamente */}
-          <label htmlFor="imageUrl" className="form-label">
+        <div className="full-width">
+          <label htmlFor="imageUrl" className="form-label"> {/* Este label puede ser solo "Imagen" */}
             Imagen del Producto
           </label>
-          {/* INICIO DEL CÓDIGO ACTUALIZADO PARA IMAGEN DEL PRODUCTO */}
           <div className="file-input-wrapper">
             <input
               type="file"
@@ -108,25 +129,24 @@ function ProductForm({ addProduct }) {
               className="form-file-input"
               accept="image/*"
               onChange={handleFileChange}
+              required
             />
-            {imageUrl ? ( // Si hay imagen, muestra su nombre
-              <p className="file-selected-text">
-                {typeof imageUrl === 'string' ? imageUrl : imageUrl.name}
-              </p>
-            ) : ( // Si no hay imagen, muestra el texto por defecto
+            {imageFile ? ( // Muestra el nombre del archivo seleccionado
+              <p className="file-selected-text">{imageFile.name}</p>
+            ) : (
               <p className="file-selected-text">Sin archivos seleccionados</p>
             )}
           </div>
-          {/* FIN DEL CÓDIGO ACTUALIZADO */}
         </div>
       </div>
       <div className="submit-button-wrapper">
-        <button
-          type="submit"
-          className="submit-button"
-        >
-          Registrar Producto
-        </button>
+      <button
+        type="submit"
+        className="submit-button"
+        disabled={loading} // Deshabilita el botón mientras se está enviando
+      >
+        {loading ? 'Registrando...' : 'Registrar Producto'}
+      </button>
       </div>
     </form>
   );

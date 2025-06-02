@@ -1,80 +1,74 @@
-import { listarProductos } from '../services/api';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react'; // <--- Importa useEffect
 import ProductForm from '../components/ProductForm';
 import ProductCard from '../components/ProductCard';
+import { listarProductos } from '../services/api'; // <--- Importa listarProductos
 
 function Home() {
-  const [products, setProducts] = useState([
-    {
-      id: 1,
-      name: "Cerámica Artesanal 'Flor Andina'",
-      description: "Jarrón de cerámica pintado a mano con motivos florales andinos, ideal para decoración.",
-      imageUrl: "https://via.placeholder.com/150/FF5733/FFFFFF?text=Ceramica1", // Reemplaza con tus imágenes reales
-      tags: ["Cerámica", "Decoración", "Andino"],
-      iaVerified: true,
-      averageConfidence: 95,
-      producer: "Artesanías del Valle"
-    },
-    {
-      id: 2,
-      name: "Tejido Alpaca 'Caminos del Sol'",
-      description: "Manta de alpaca tejida a mano con patrones geométricos, suave y abrigadora.",
-      imageUrl: "https://via.placeholder.com/150/33FF57/FFFFFF?text=Tejido1",
-      tags: ["Textil", "Alpaca", "Cultura"],
-      iaVerified: false,
-      averageConfidence: 70,
-      producer: "Textiles Quillabamba"
-    },
-    {
-      id: 3,
-      name: "Joyería Plata 'Laguna Azul'",
-      description: "Collar de plata 950 con incrustaciones de piedra turquesa, diseño inspirado en lagunas andinas.",
-      imageUrl: "https://via.placeholder.com/150/5733FF/FFFFFF?text=Joyer%C3%ADa1",
-      tags: ["Joyería", "Plata", "Turquesa"],
-      iaVerified: true,
-      averageConfidence: 88,
-      producer: "Orfebrería Andina"
-    },
-    {
-      id: 4,
-      name: "Escultura Madera 'Guardían Inca'",
-      description: "Figura tallada en madera de cedro, representa un guardián de la antigua civilización Inca.",
-      imageUrl: "https://via.placeholder.com/150/FFBD33/FFFFFF?text=Escultura1",
-      tags: ["Escultura", "Madera", "Inca"],
-      iaVerified: true,
-      averageConfidence: 92,
-      producer: "Talla Ayacuchana"
-    }
-  ]);
+  // Estado para los productos que vienen del backend
+  const [products, setProducts] = useState([]);
+  // Estados para manejar la carga y errores al obtener productos
+  const [loadingProducts, setLoadingProducts] = useState(true);
+  const [errorProducts, setErrorProducts] = useState(null);
+
   const [searchTerm, setSearchTerm] = useState('');
 
-  const addProduct = (newProduct) => {
-    setProducts([...products, { ...newProduct, id: products.length + 1 }]);
+  // *** FUNCIÓN PARA OBTENER PRODUCTOS DEL BACKEND ***
+  const fetchProducts = async () => {
+    setLoadingProducts(true);
+    setErrorProducts(null); // Limpiar errores anteriores
+    try {
+      console.log("Home: Intentando listar productos del backend...");
+      const data = await listarProductos(); // Llama a tu API
+      setProducts(data);
+      console.log("Home: Productos cargados:", data);
+    } catch (err) {
+      console.error("Home: Error al cargar productos:", err.response ? err.response.data : err.message);
+      setErrorProducts('No se pudieron cargar los productos del servidor.');
+    } finally {
+      setLoadingProducts(false);
+    }
   };
+
+  // *** EFECTO PARA CARGAR PRODUCTOS AL MONTAR EL COMPONENTE ***
+  useEffect(() => {
+    fetchProducts();
+  }, []); // El array vacío [] asegura que se ejecuta solo una vez al montar
+
+  // *** FUNCIÓN PARA MANEJAR EL REGISTRO EXITOSO DESDE PRODUCTFORM ***
+  // Esta función ahora solo gatillará una recarga de los productos desde el backend
+  const handleProductRegistered = (newProductData) => { // newProductData es el producto devuelto por el backend
+    console.log("Home: Producto registrado exitosamente. Recargando lista...");
+    // Podrías añadir el newProductData directamente, pero recargar es más seguro
+    // para reflejar cualquier cambio o procesamiento en el backend.
+    fetchProducts();
+  };
+
 
   const filteredProducts = products.filter(product =>
     product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    product.description.toLowerCase().includes(searchTerm.toLowerCase())
+    product.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    product.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase())) // También busca por etiquetas
   );
 
   return (
-    <div className="section-spacing"> {/* Contenedor principal con espaciado entre secciones */}
+    <div className="section-spacing">
 
       {/* Sección de Bloques de Información */}
       <section>
         <h2 className="section-title">Nuestra Plataforma en Cifras</h2>
-        <div className="info-blocks-grid"> {/* Grid para los bloques de información */}
-          
+        <div className="info-blocks-grid">
           <div className="info-block info-block-blue">
             <h3 className="info-block-title">Productos Registrados</h3>
+            {/* Asegúrate que esto muestre la cantidad real de productos cargados */}
             <p className="info-block-value">{products.length}</p>
-            <span className="emoji-icon">📦</span> {/* Emoji */}
+            <span className="emoji-icon">📦</span>
           </div>
 
           <div className="info-block info-block-green">
             <h3 className="info-block-title">Verificados con IA</h3>
+            {/* Asegúrate que iaVerified y averageConfidence vengan del backend */}
             <p className="info-block-value">{products.filter(p => p.iaVerified).length}</p>
-            <span className="emoji-icon">✅</span> {/* Emoji */}
+            <span className="emoji-icon">✅</span>
           </div>
 
           <div className="info-block info-block-orange">
@@ -84,22 +78,22 @@ function Home() {
                 ? (products.reduce((sum, p) => sum + p.averageConfidence, 0) / products.length).toFixed(0)
                 : 'N/A'}%
             </p>
-            <span className="emoji-icon">📈</span> {/* Emoji */}
+            <span className="emoji-icon">📈</span>
           </div>
-
         </div>
       </section>
 
       {/* Sección del Formulario de Registro */}
       <section>
-        <div className="product-form-container"> {/* Contenedor del formulario */}
+        <div className="product-form-container">
           <h2 className="form-title">Registrar Nuevo Producto Artesanal</h2>
-          <ProductForm addProduct={addProduct} />
+          {/* ¡Pasa la nueva función handleProductRegistered como prop! */}
+          <ProductForm addProduct={handleProductRegistered} />
         </div>
       </section>
 
       {/* Sección de Productos Recientes */}
-      <section className="recent-products-section"> {/* Contenedor para productos recientes */}
+      <section className="recent-products-section">
         <div className="recent-products-header">
           <h2 className="recent-products-title">Productos Recientes</h2>
           <div className="search-input-wrapper">
@@ -111,19 +105,25 @@ function Home() {
               onChange={(e) => setSearchTerm(e.target.value)}
             />
             <div className="search-icon">
-              <span className="emoji-icon">🔍</span> {/* Emoji de búsqueda */}
+              <span className="emoji-icon">🔍</span>
             </div>
           </div>
         </div>
-        
-        {filteredProducts.length === 0 ? (
+
+        {loadingProducts && <p>Cargando productos...</p>} {/* Muestra mensaje de carga */}
+        {errorProducts && <p className="error-message" style={{ color: 'red' }}>{errorProducts}</p>} {/* Muestra mensaje de error */}
+
+        {!loadingProducts && !errorProducts && filteredProducts.length === 0 ? (
           <p className="no-products-message">No se encontraron productos.</p>
         ) : (
-          <div className="product-cards-grid"> {/* Grid para las tarjetas de producto */}
-            {filteredProducts.map(product => (
-              <ProductCard key={product.id} product={product} />
-            ))}
-          </div>
+          // Solo muestra el grid si no hay carga ni error y hay productos
+          !loadingProducts && !errorProducts && (
+            <div className="product-cards-grid">
+              {filteredProducts.map(product => (
+                <ProductCard key={product.id} product={product} />
+              ))}
+            </div>
+          )
         )}
       </section>
     </div>
