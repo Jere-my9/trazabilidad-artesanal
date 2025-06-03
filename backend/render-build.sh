@@ -1,17 +1,24 @@
 #!/usr/bin/env bash
-# Exit on error
-set -o errexit
+set -o errexit # Salir si un comando falla
 
-# Install dependencies
+echo "--- Instalando dependencias de Python ---"
 pip install -r requirements.txt
 
-# Download NLTK data
-python -m nltk.downloader punkt
-python -m nltk.downloader averaged_perceptron_tagger
-python -m nltk.downloader wordnet
-# Descargar el recurso específico que falta
-python -c "import nltk; nltk.download('punkt_tab', download_dir='/opt/render/project/src/nltk_data')"
-# Puedes añadir más si tu código usa otros recursos de NLTK (ej. 'stopwords', 'vader_lexicon', etc.)
+echo "--- Descargando datos de NLTK ---"
+# Descarga los recursos necesarios de NLTK a una ubicación conocida
+# NLTK_DATA es una variable de entorno que NLTK busca para sus datos
+export NLTK_DATA=/opt/render/project/src/nltk_data
+mkdir -p $NLTK_DATA # Asegurarse de que el directorio exista
 
-# Run migrations
+python -c "import nltk; nltk.download('punkt', download_dir='$NLTK_DATA')"
+python -c "import nltk; nltk.download('averaged_perceptron_tagger', download_dir='$NLTK_DATA')"
+python -c "import nltk; nltk.download('wordnet', download_dir='$NLTK_DATA')"
+python -c "import nltk; nltk.download('punkt_tab', download_dir='$NLTK_DATA')"
+
+echo "--- Ejecutando migraciones de Django ---"
 python manage.py migrate
+
+echo "--- Recolectando archivos estáticos de Django (opcional si usas S3/Cloudinary para estáticos) ---"
+python manage.py collectstatic --noinput
+
+echo "--- Proceso de construcción de Render completado ---"
