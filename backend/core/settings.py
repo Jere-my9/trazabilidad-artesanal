@@ -101,8 +101,8 @@ MIDDLEWARE = [
 ]
 
 # Asegúrate de que el nombre del proyecto sea correcto, si tu carpeta es 'tinkuy_backend'
-ROOT_URLCONF = 'tinkuy_backend.urls'
-WSGI_APPLICATION = 'tinkuy_backend.wsgi.application'
+ROOT_URLCONF = 'core.urls'
+WSGI_APPLICATION = 'core.wsgi.application'
 
 
 # Database
