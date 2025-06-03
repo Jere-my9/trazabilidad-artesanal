@@ -100,6 +100,25 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
+TEMPLATES = [
+    {
+        'BACKEND': 'django.template.backends.django.DjangoTemplates',
+        # DIRS es donde Django buscará plantillas a nivel de proyecto
+        # Es buena práctica incluirlo, incluso si no tienes un directorio de plantillas global al principio
+        'DIRS': [BASE_DIR / 'templates'],
+        # APP_DIRS: True le dice a Django que también busque plantillas dentro de las carpetas 'templates' de tus apps instaladas (como 'admin', 'api', etc.)
+        'APP_DIRS': True,
+        'OPTIONS': {
+            'context_processors': [
+                'django.template.context_processors.debug', # Útil para depuración
+                'django.template.context_processors.request',
+                'django.contrib.auth.context_processors.auth',
+                'django.contrib.messages.context_processors.messages',
+            ],
+        },
+    },
+]
+
 # Asegúrate de que el nombre del proyecto sea correcto, si tu carpeta es 'tinkuy_backend'
 ROOT_URLCONF = 'core.urls'
 WSGI_APPLICATION = 'core.wsgi.application'
