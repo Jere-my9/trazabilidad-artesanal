@@ -19,22 +19,30 @@ class ProductoArtesanalViewSet(viewsets.ModelViewSet):
 
         # 1. Verificar el producto con IA
         try:
-            # Asegúrate de que 'image' es el campo correcto de tu modelo
-            if producto.imagen and hasattr(producto.imagen, 'path'):
-                # Si ya está guardada en Cloudinary, 'path' puede no existir
-                # Necesitarás pasar la URL de Cloudinary a la función de IA
-                imagen_path_o_url = producto.imagen.url # Usar la URL de Cloudinary
+            if producto.imagen: # Asegúrate de que haya una imagen
+                # --- CAMBIO CLAVE AQUÍ ---
+                # Cuando Django maneja las imágenes localmente, usa .path para la ruta física del archivo.
+                imagen_path_o_url = producto.imagen.path
+                logger.debug(f"DEBUG: Ruta de la imagen para IA: {imagen_path_o_url}")
             else:
-                # Si no hay imagen o no tiene URL, o para pruebas locales
-                logger.warning("Producto sin imagen o URL de imagen no disponible para IA.")
+                logger.warning("Producto sin imagen para IA.")
                 imagen_path_o_url = None
 
-            confianza_ia, _ = verificar_producto(imagen_path_o_url) # Pasar la URL
-            producto.confianza_ia = confianza_ia
-            producto.verificado = confianza_ia >= 70.0 # Define tu umbral de confianza
-            producto.save() # Guardar la confianza y verificación IA
+            if imagen_path_o_url: # Solo si hay una imagen válida para procesar
+                # La función verificar_producto devuelve 3 valores, asegúrate de capturarlos todos
+                es_autentico, confianza_ia, mensaje_ia = verificar_producto(imagen_path_o_url)
+                producto.confianza_ia = confianza_ia
+                producto.verificado = es_autentico # Usar es_autentico directamente o si confianza_ia >= 70.0
+                producto.save()
 
-            logger.debug(f"DEBUG: Producto verificado por IA: {producto.verificado}, Confianza: {producto.confianza_ia}%")
+                logger.debug(f"DEBUG: Producto verificado por IA: {producto.verificado}, Confianza: {producto.confianza_ia}%, Mensaje IA: {mensaje_ia}")
+
+            else:
+                logger.warning("No se pudo verificar el producto con IA debido a la falta de imagen.")
+                producto.confianza_ia = 0.0
+                producto.verificado = False
+                producto.save() # Guardar el estado sin verificación
+
 
         except Exception as e:
             logger.error(f"ERROR: Fallo al verificar con IA: {e}")
@@ -45,18 +53,13 @@ class ProductoArtesanalViewSet(viewsets.ModelViewSet):
 
         # 2. Registrar en blockchain (DESACTIVADO TEMPORALMENTE)
         try:
-            # Si tienes una línea como esta, coméntala o bórrala:
-            # tx_hash, hash_prod = registrar_en_blockchain(producto)
-            # producto.hash_blockchain = tx_hash
-            # producto.save() # Guardar el hash de la blockchain
-
             logger.warning("Blockchain integration is temporarily disabled.")
             producto.hash_blockchain = "Blockchain Desactivada" # O déjalo vacío
-            producto.save() # Guardar el cambio si hiciste uno
+            producto.save()
         except Exception as e:
             logger.error(f"ERROR: Fallo al registrar en blockchain: {e}")
             producto.hash_blockchain = "ERROR: Fallo al registrar"
-            producto.save() # Guardar el error
+            producto.save()
 
 
 class TipoProductoViewSet(viewsets.ModelViewSet):
