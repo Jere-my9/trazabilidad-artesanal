@@ -23,7 +23,7 @@ def obtener_hash(producto):
 
 def registrar_en_blockchain(producto):
     hash_hex = obtener_hash(producto)
-    hash_bytes = w3.toBytes(hexstr=hash_hex)
+    hash_bytes = Web3.to_bytes(hexstr=hash_hex)
 
     nonce = w3.eth.get_transaction_count(ACCOUNT_ADDRESS)
     tx = contract.functions.registrarProducto(hash_bytes).build_transaction({
