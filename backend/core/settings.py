@@ -1,5 +1,3 @@
-# C:\Tinkuy-trazabilidad\backend\core\settings.py
-
 import os
 import dj_database_url
 from pathlib import Path
@@ -32,6 +30,18 @@ if DEBUG:
     ALLOWED_HOSTS.extend(['localhost', '127.0.0.1'])
 
 
+# === INICIO DE CAMBIOS ===
+
+# Configuración de Cloudinary (DESCOMENTAR ESTAS LÍNEAS)
+CLOUDINARY_CLOUD_NAME = config('CLOUDINARY_CLOUD_NAME')
+CLOUDINARY_API_KEY = config('CLOUDINARY_API_KEY')
+CLOUDINARY_API_SECRET = config('CLOUDINARY_API_SECRET')
+
+DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+MEDIA_URL = '/media/' # Cloudinary lo maneja, pero esta línea a veces es necesaria para Django
+
+
+# Configuración de CORS (¡CRÍTICO para la comunicación frontend/backend!)
 if DEBUG:
     CORS_ALLOW_ALL_ORIGINS = True
 else:
@@ -50,8 +60,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    # 'cloudinary',
-    # 'cloudinary_storage',
+    'cloudinary',          # <--- DESCOMENTAR ESTA LÍNEA
+    'cloudinary_storage',  # <--- DESCOMENTAR ESTA LÍNEA
     'corsheaders',
     'rest_framework',
     'api',
@@ -61,7 +71,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware', # <--- ¡DESCOMENTAR ESTA LÍNEA!
+    # 'whitenoise.middleware.WhiteNoiseMiddleware', # <--- COMENTAR ESTA LÍNEA
     'corsheaders.middleware.CorsMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -147,11 +157,12 @@ USE_TZ = True
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
-# --- Configuración para Whitenoise y Media Files (AÑADE ESTO O ASEGÚRATE DE QUE ESTÉ ASÍ) ---
-MEDIA_URL = '/media/'
-MEDIA_ROOT = BASE_DIR / 'media' # Asegúrate de que esta línea esté activa y así
+# --- Configuración para Whitenoise y Media Files (COMENTAR ESTAS LÍNEAS) ---
+# MEDIA_URL = '/media/'
+# MEDIA_ROOT = BASE_DIR / 'media' # Asegúrate de que esta línea esté activa y así
 
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+# COMENTAR ESTA LÍNEA:
+# STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'

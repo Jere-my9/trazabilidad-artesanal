@@ -21,9 +21,9 @@ class ProductoArtesanalViewSet(viewsets.ModelViewSet):
         try:
             if producto.imagen: # Asegúrate de que haya una imagen
                 # --- CAMBIO CLAVE AQUÍ ---
-                # Cuando Django maneja las imágenes localmente, usa .path para la ruta física del archivo.
-                imagen_path_o_url = producto.imagen.path
-                logger.debug(f"DEBUG: Ruta de la imagen para IA: {imagen_path_o_url}")
+                # Cuando se usa Cloudinary, se pasa la URL de la imagen.
+                imagen_path_o_url = producto.imagen.url # <--- CAMBIAR A .url
+                logger.debug(f"DEBUG: URL de la imagen para IA: {imagen_path_o_url}") # Cambia el log para reflejar URL
             else:
                 logger.warning("Producto sin imagen para IA.")
                 imagen_path_o_url = None
