@@ -1,7 +1,9 @@
+# C:\Tinkuy-trazabilidad\backend\core\settings.py
+
 import os
 import dj_database_url
 from pathlib import Path
-from decouple import config # Asegúrate de que python-decouple esté instalado
+from decouple import config
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -28,36 +30,15 @@ if RENDER_EXTERNAL_HOSTNAME:
 # Si DEBUG es True (solo en desarrollo local), permite localhost y 127.0.0.1
 if DEBUG:
     ALLOWED_HOSTS.extend(['localhost', '127.0.0.1'])
-# Para una configuración más robusta, podrías añadir un wildcard para Render si es free tier:
-# ALLOWED_HOSTS.append('.onrender.com') # Esto permite cualquier subdominio .onrender.com
 
 
-# --- COMENTA O ELIMINA TODAS LAS CONFIGURACIONES DE CLOUDINARY ---
-# # Configuración de Cloudinary
-# CLOUDINARY_CLOUD_NAME = config('CLOUDINARY_CLOUD_NAME')
-# CLOUDINARY_API_KEY = config('CLOUDINARY_API_KEY')
-# CLOUDINARY_API_SECRET = config('CLOUDINARY_API_SECRET')
-
-# DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage' # <--- COMENTAR/ELIMINAR
-MEDIA_URL = '/media/'
-# --- ESTO DEBE ESTAR ACTIVO PARA ALMACENAMIENTO LOCAL ---
-MEDIA_ROOT = BASE_DIR / 'media' # <--- DESCOMENTA Y ACTIVA ESTA LÍNEA
-
-
-# Configuración de CORS (¡CRÍTICO para la comunicación frontend/backend!)
-# Si DEBUG es True, permitir todos los orígenes para facilitar el desarrollo
 if DEBUG:
     CORS_ALLOW_ALL_ORIGINS = True
 else:
     CORS_ALLOW_ALL_ORIGINS = False
     CORS_ALLOWED_ORIGINS = [
         "https://tinkuy-frontend.onrender.com", # ¡Asegúrate de que esta URL sea EXACTA!
-        # Puedes añadir otros dominios de producción aquí si los tienes
     ]
-    # Opcional: Si tienes otras aplicaciones o scripts que necesitan acceder, puedes añadir:
-    # CORS_ALLOWED_ORIGIN_REGEXES = [
-    #     r"^https://\w+\.onrender\.com$", # Permite cualquier subdominio en onrender.com
-    # ]
 
 
 # Application definition
@@ -69,19 +50,19 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    # 'cloudinary',        # <--- COMENTAR/ELIMINAR
-    # 'cloudinary_storage', # <--- COMENTAR/ELIMINAR
-    'corsheaders', # Asegúrate de que esté aquí
+    # 'cloudinary',
+    # 'cloudinary_storage',
+    'corsheaders',
     'rest_framework',
     'api',
-    'ia', # Asegúrate de que este sea el nombre correcto de tu app IA
+    'ia',
     'blockchain',
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    # 'whitenoise.middleware.WhiteNoiseMiddleware', # Descomentar si lo usas y lo necesitas
-    'corsheaders.middleware.CorsMiddleware', # <--- ¡DEBE ESTAR ARRIBA! Después de SecurityMiddleware.
+    'whitenoise.middleware.WhiteNoiseMiddleware', # <--- ¡DESCOMENTAR ESTA LÍNEA!
+    'corsheaders.middleware.CorsMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -93,14 +74,11 @@ MIDDLEWARE = [
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        # DIRS es donde Django buscará plantillas a nivel de proyecto
-        # Es buena práctica incluirlo, incluso si no tienes un directorio de plantillas global al principio
         'DIRS': [BASE_DIR / 'templates'],
-        # APP_DIRS: True le dice a Django que también busque plantillas dentro de las carpetas 'templates' de tus apps instaladas (como 'admin', 'api', etc.)
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
-                'django.template.context_processors.debug', # Útil para depuración
+                'django.template.context_processors.debug',
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
@@ -109,7 +87,6 @@ TEMPLATES = [
     },
 ]
 
-# Asegúrate de que el nombre del proyecto sea correcto, si tu carpeta es 'tinkuy_backend'
 ROOT_URLCONF = 'core.urls'
 WSGI_APPLICATION = 'core.wsgi.application'
 
@@ -117,13 +94,11 @@ WSGI_APPLICATION = 'core.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-# La lógica de la base de datos es lo más importante aquí
-# Usa DATABASE_URL si está disponible (para Render), de lo contrario, usa SQLite (para desarrollo local)
 if 'DATABASE_URL' in os.environ:
     DATABASES = {
         'default': dj_database_url.config(
             default=os.environ['DATABASE_URL'],
-            conn_max_age=600 # Opcional: mantiene las conexiones a la DB activas
+            conn_max_age=600
         )
     }
 else:
@@ -170,13 +145,13 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
 STATIC_URL = '/static/'
-STATIC_ROOT = BASE_DIR / 'staticfiles' # Se recomienda usar pathlib para esto
+STATIC_ROOT = BASE_DIR / 'staticfiles'
 
-# Si usas Whitenoise (descomentar si se añade al MIDDLEWARE)
-# STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+# --- Configuración para Whitenoise y Media Files (AÑADE ESTO O ASEGÚRATE DE QUE ESTÉ ASÍ) ---
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media' # Asegúrate de que esta línea esté activa y así
 
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
-# Default primary key field type
-# https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
