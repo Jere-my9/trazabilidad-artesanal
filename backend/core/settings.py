@@ -38,7 +38,7 @@ CLOUDINARY_API_KEY = config('CLOUDINARY_API_KEY')
 CLOUDINARY_API_SECRET = config('CLOUDINARY_API_SECRET')
 
 DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
-MEDIA_URL = '/media/' # Cloudinary lo maneja, pero esta línea a veces es necesaria para Django
+# MEDIA_URL = '/media/' # Cloudinary lo maneja, pero esta línea a veces es necesaria para Django
 
 
 # Configuración de CORS (¡CRÍTICO para la comunicación frontend/backend!)
