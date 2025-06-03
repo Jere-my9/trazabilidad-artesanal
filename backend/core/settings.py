@@ -36,7 +36,11 @@ DEBUG = os.environ.get('DEBUG', 'False') == 'True' # Por defecto a False
 # 2. ALLOWED_HOSTS (usar variable de entorno y RENDER_EXTERNAL_HOSTNAME)
 # Obtén la lista de orígenes CORS de la variable de entorno, separadas por coma
 CORS_ALLOWED_ORIGINS_RAW = os.environ.get('CORS_ALLOWED_ORIGINS', '')
-CORS_ALLOWED_ORIGINS = [origin.strip() for origin in CORS_ALLOWED_ORIGINS_RAW.split(',') if origin.strip()]
+CORS_ALLOWED_ORIGINS = [
+    "https://tinkuy-frontend.onrender.com", # <--- ¡Asegúrate de que esta línea esté aquí!
+    "http://localhost:5173", # Para desarrollo local de frontend (React/Vite por defecto)
+    "http://127.0.0.1:5173",
+]
 
 CLOUDINARY_CLOUD_NAME = config('CLOUDINARY_CLOUD_NAME')
 CLOUDINARY_API_KEY = config('CLOUDINARY_API_KEY')
