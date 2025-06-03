@@ -12,11 +12,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 import os
 import dj_database_url
 from pathlib import Path
-from decouple import config
-
-# Importar Whitenoise si lo vas a usar para estáticos (recomendado)
-# from whitenoise.storage import CompressedManifestStaticFilesStorage
-
+from decouple import config # Asegúrate de que python-decouple esté instalado
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -25,44 +21,53 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-gz$d%h-1az^d)b-e^tjf*yy&%+w%oh57)z-y&)6p^dck(0-o1)'
+# SECURITY WARNING: keep the secret key used in production production!
+SECRET_KEY = config('SECRET_KEY', default='django-insecure-gz$d%h-1az^d)b-e^tjf*yy&%+w%oh57)z-y&)6p^dck(0-o1)')
 
 
 # === CONFIGURACIONES PARA PRODUCCIÓN (RENDER) ===
-# 1. DEBUG (usar variable de entorno)
-DEBUG = False # Por defecto a False
+# 1. DEBUG (usar decouple para que sea True en .env y False en Render por defecto)
+DEBUG = config('DEBUG', default=False, cast=bool)
 
-# 2. ALLOWED_HOSTS (usar variable de entorno y RENDER_EXTERNAL_HOSTNAME)
-# Obtén la lista de orígenes CORS de la variable de entorno, separadas por coma
-CORS_ALLOWED_ORIGINS_RAW = os.environ.get('CORS_ALLOWED_ORIGINS', '')
-CORS_ALLOWED_ORIGINS = [
-    "https://tinkuy-frontend.onrender.com", # <--- ¡Asegúrate de que esta línea esté aquí!
-    "http://localhost:5173", # Para desarrollo local de frontend (React/Vite por defecto)
-    "http://127.0.0.1:5173",
-]
+# 2. ALLOWED_HOSTS (crucial para Render)
+ALLOWED_HOSTS = ['tinkuy-backend.onrender.com'] # Siempre incluye tu dominio de Render
+# Añade el hostname externo de Render si está disponible
+RENDER_EXTERNAL_HOSTNAME = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
+if RENDER_EXTERNAL_HOSTNAME:
+    ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
 
+# Si DEBUG es True (solo en desarrollo local), permite localhost y 127.0.0.1
+if DEBUG:
+    ALLOWED_HOSTS.extend(['localhost', '127.0.0.1'])
+# Para una configuración más robusta, podrías añadir un wildcard para Render si es free tier:
+# ALLOWED_HOSTS.append('.onrender.com') # Esto permite cualquier subdominio .onrender.com
+
+
+# Configuración de Cloudinary
 CLOUDINARY_CLOUD_NAME = config('CLOUDINARY_CLOUD_NAME')
 CLOUDINARY_API_KEY = config('CLOUDINARY_API_KEY')
 CLOUDINARY_API_SECRET = config('CLOUDINARY_API_SECRET')
 
 DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
-
 MEDIA_URL = '/media/'
-# Configura ALLOWED_HOSTS para Render
-ALLOWED_HOSTS = ['tinkuy-backend.onrender.com', '*']
-# Obtén ALLOWED_HOSTS de la variable de entorno
-ALLOWED_HOSTS_ENV = os.environ.get('ALLOWED_HOSTS', '').split(',')
-ALLOWED_HOSTS.extend([host.strip() for host in ALLOWED_HOSTS_ENV if host.strip()])
+# MEDIA_ROOT no es necesario cuando usas Cloudinary para almacenamiento de medios en producción
+# MEDIA_ROOT = BASE_DIR / 'media' # <--- Asegúrate de que esta línea esté COMENTADA o ELIMINADA
 
-# Añade el hostname externo de Render si está disponible (crucial para despliegues)
-RENDER_EXTERNAL_HOSTNAME = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
-if RENDER_EXTERNAL_HOSTNAME:
-    ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
 
-# Si DEBUG es True (generalmente solo en desarrollo local), permite localhost
+# Configuración de CORS (¡CRÍTICO para la comunicación frontend/backend!)
+# Si DEBUG es True, permitir todos los orígenes para facilitar el desarrollo
 if DEBUG:
-    ALLOWED_HOSTS.extend(['localhost', '127.0.0.1'])
+    CORS_ALLOW_ALL_ORIGINS = True
+else:
+    CORS_ALLOW_ALL_ORIGINS = False
+    CORS_ALLOWED_ORIGINS = [
+        "https://tinkuy-frontend.onrender.com", # ¡Asegúrate de que esta URL sea EXACTA!
+        # Puedes añadir otros dominios de producción aquí si los tienes
+    ]
+    # Opcional: Si tienes otras aplicaciones o scripts que necesitan acceder, puedes añadir:
+    # CORS_ALLOWED_ORIGIN_REGEXES = [
+    #     r"^https://\w+\.onrender\.com$", # Permite cualquier subdominio en onrender.com
+    # ]
 
 
 # Application definition
@@ -76,7 +81,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'cloudinary',
     'cloudinary_storage',
-    'corsheaders',
+    'corsheaders', # Asegúrate de que esté aquí
     'rest_framework',
     'api',
     'ia', # Asegúrate de que este sea el nombre correcto de tu app IA
@@ -85,8 +90,8 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    # 'whitenoise.middleware.WhiteNoiseMiddleware', # Si no lo usas, puedes comentarlo
-    'corsheaders.middleware.CorsMiddleware', # <--- ¡DEBE ESTAR ARRIBA! Preferiblemente después de SecurityMiddleware.
+    # 'whitenoise.middleware.WhiteNoiseMiddleware', # Descomentar si lo usas y lo necesitas
+    'corsheaders.middleware.CorsMiddleware', # <--- ¡DEBE ESTAR ARRIBA! Después de SecurityMiddleware.
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -95,24 +100,9 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-ROOT_URLCONF = 'core.urls'
-
-TEMPLATES = [
-    {
-        'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
-        'APP_DIRS': True,
-        'OPTIONS': {
-            'context_processors': [
-                'django.template.context_processors.request',
-                'django.contrib.auth.context_processors.auth',
-                'django.contrib.messages.context_processors.messages',
-            ],
-        },
-    },
-]
-
-WSGI_APPLICATION = 'core.wsgi.application'
+# Asegúrate de que el nombre del proyecto sea correcto, si tu carpeta es 'tinkuy_backend'
+ROOT_URLCONF = 'tinkuy_backend.urls'
+WSGI_APPLICATION = 'tinkuy_backend.wsgi.application'
 
 
 # Database
