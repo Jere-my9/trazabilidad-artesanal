@@ -31,7 +31,7 @@ SECRET_KEY = 'django-insecure-gz$d%h-1az^d)b-e^tjf*yy&%+w%oh57)z-y&)6p^dck(0-o1)
 
 # === CONFIGURACIONES PARA PRODUCCIÓN (RENDER) ===
 # 1. DEBUG (usar variable de entorno)
-DEBUG = os.environ.get('DEBUG', 'False') == 'True' # Por defecto a False
+DEBUG = False # Por defecto a False
 
 # 2. ALLOWED_HOSTS (usar variable de entorno y RENDER_EXTERNAL_HOSTNAME)
 # Obtén la lista de orígenes CORS de la variable de entorno, separadas por coma
@@ -50,7 +50,7 @@ DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
 
 MEDIA_URL = '/media/'
 # Configura ALLOWED_HOSTS para Render
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['tinkuy-backend.onrender.com', '*']
 # Obtén ALLOWED_HOSTS de la variable de entorno
 ALLOWED_HOSTS_ENV = os.environ.get('ALLOWED_HOSTS', '').split(',')
 ALLOWED_HOSTS.extend([host.strip() for host in ALLOWED_HOSTS_ENV if host.strip()])
@@ -85,10 +85,9 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    # Whitenoise para servir archivos estáticos en producción (descomentar si lo usas)
-    # 'whitenoise.middleware.WhiteNoiseMiddleware',
+    # 'whitenoise.middleware.WhiteNoiseMiddleware', # Si no lo usas, puedes comentarlo
+    'corsheaders.middleware.CorsMiddleware', # <--- ¡DEBE ESTAR ARRIBA! Preferiblemente después de SecurityMiddleware.
     'django.contrib.sessions.middleware.SessionMiddleware',
-    "corsheaders.middleware.CorsMiddleware",
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
